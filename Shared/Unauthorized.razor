@@ -1,0 +1,40 @@
+﻿@page "/Unauthorized"
+@layout LoginLayout
+@inject NavigationManager NavigationManager
+
+<section class="d-flex align-items-center my-5 mt-lg-6 mb-lg-5">
+    <div class="container">
+        <div class="row justify-content-center form-bg-image">
+            <div class="col-12 d-flex align-items-center justify-content-center" style="height:565px;">
+                <div class="bg-white shadow-soft border rounded border-light p-4 p-lg-5 w-100 fmxw-500">
+                    <div class="row">
+                        <div class="text-center text-md-center mb-4 mt-md-0">
+                            <img class="img-fluid w-50" src="https://cdn2.iconfinder.com/data/icons/construction-butterscotch-vol-2/512/No_Unauthorized_Personnel-512.png" alt="menuimage">
+                        </div>
+                    </div>
+                    <div class="align-content-stretch text-center text-md-center py-3">
+                        No posee acceso a este sitio
+                    </div>
+                    <div class="text-center text-md-center py-3">
+                        <div>
+                            <a class="btn btn-primary animate-hover" @onclick="GoLogin">
+                                <i class="fas fa-chevron-left mr-3 pl-2 animate-left-3">
+                                </i>Volver al Login
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+
+@code {
+
+    private void GoLogin()
+    {
+        NavigationManager.NavigateTo("login");
+    }
+
+}

@@ -1,0 +1,51 @@
+﻿@inject NavigationManager navigationManager
+
+<nav class="navbar navbar-expand-md fixed-top navbar-dark bg-dark mb-4">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="#">Sistema de Estacionamiento Medido</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav me-auto mb-2 mb-md-0">
+                <li class="nav-item">
+                    <NavLink class="nav-link" href="index" Match="NavLinkMatch.All">
+                        Inicio
+                    </NavLink>
+                </li>
+                <li class="nav-item">
+                    <NavLink class="nav-link" href="mapa">
+                        Mapas
+                    </NavLink>
+                </li>
+                <li class="nav-item">
+                    <NavLink class="nav-link" href="infracciones">
+                        Infracciones
+                    </NavLink>
+                </li>
+            </ul>
+            <div class="d-flex">              
+                <button class="btn btn-outline-danger mr-2" type="submit" @onclick="logout">Desconectarse</button>
+            </div>
+        </div>
+    </div>
+</nav>
+
+
+
+@code {
+    private bool collapseNavMenu = false;
+
+    private string NavMenuCssClass => collapseNavMenu ? "open" : null;
+
+    private void ToggleNavMenu()
+    {
+        collapseNavMenu = !collapseNavMenu;
+    }
+
+    public void logout()
+    {
+        sessionManager.Logout();
+        navigationManager.NavigateTo("/login", true);
+    }
+}

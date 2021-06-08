@@ -1,0 +1,85 @@
+﻿@page "/Mapa"
+
+@inject ComercioService comercioService
+
+<h1>Hello, world!</h1>
+
+Welcome to your new app.
+
+@*<SurveyPrompt Title="How is Blazor working for you?" />*@
+
+<button class="btn btn-primary" @onclick="MostrarComercios">MostrarComercios</button>
+<button class="btn btn-primary" @onclick="PosicionInicial">PosicionInicial</button>
+<button class="btn btn-primary" @onclick="MostrarComercios">MostrarComercios</button>
+
+<Map @ref="mapRef" MapOptions="@mapOptions"></Map>
+
+<style>
+    #mapId {
+        height: 400px;
+    }
+</style>
+
+@code {
+    private Map mapRef;
+    private LatLng inicial;
+    private MapOptions mapOptions;
+    List<Comercio> comerciosList;
+
+    protected override void OnInitialized()
+    {
+        inicial = new LatLng(-34.520887, -58.702172); //UNGS
+
+        mapOptions = new MapOptions()
+        {
+            DivId = "mapId",
+            Center = inicial,
+            Zoom = 13,
+            UrlTileLayer = "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+            SubOptions = new MapSubOptions()
+            {
+                Attribution = "&copy; <a lhref='http://www.openstreetmap.org/copyright'>OpenStreetMap</a>",
+                TileSize = 512,
+                ZoomOffset = -1,
+                MaxZoom = 19,
+            }
+        };
+
+
+    }
+    protected override async Task OnInitializedAsync()
+    {
+        comerciosList = await comercioService.GetComerciosCercanos();
+    }
+
+    private async Task PosicionInicial()
+    {
+        //LatLng center = await this.mapRef.GetCenter();
+        await JsRuntime.InvokeAsync<string>("alert", $"Te encuentras en: Lat: {inicial.Lat}, Lng: {inicial.Lng}");
+    }
+
+    private async Task MostrarComercios()
+    {
+        foreach (var comercio in comerciosList)
+        {
+            var marker = await MarkerFactory.Create(new LatLng(comercio.Latitud, comercio.Longitud));
+            await marker.BindTooltip($"{comercio.Nombre} - {comercio.HorarioAtencion}");
+            await marker.OnClick(OnClickComercio);
+
+            await marker.AddTo(mapRef);
+
+            //if (await marker.IsPopupOpen())
+            //    await PosicionInicial();
+        }
+
+    }
+
+
+    private async Task OnClickComercio(MouseEvent m)
+    {
+        var comercio = comerciosList.FirstOrDefault(x => x.Latitud == m.LatLng.Lat && x.Longitud == m.LatLng.Lng);
+        if (comercio != null)
+            await JsRuntime.InvokeAsync<string>("alert", $" Comercio: {comercio.Nombre}.\nDireccion: {comercio.Direccion}.\nRubro: {comercio.Rubro}");
+    }
+
+}

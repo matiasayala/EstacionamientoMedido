@@ -1,0 +1,79 @@
+﻿@page "/login"
+@page "/"
+
+@inject NavigationManager NavigationManager
+
+<section class="d-flex align-items-center my-5 mt-lg-6 mb-lg-5">
+    <div class="container">
+        <div class="row justify-content-center form-bg-image">
+            <div class="col-12 d-flex align-items-center justify-content-center" style="height:565px;">
+                <div class="bg-white shadow-soft border rounded border-light p-4 p-lg-5 w-100 fmxw-500">
+                    <div class="text-center text-md-center mb-4 mt-md-0">
+                        <h1 class="mb-0 h3">Sistema de Estacionamiento Medidio</h1>
+                    </div>
+                    <EditForm @ref="LoginEditForm" Model="@User" OnSubmit="@TryLogin" class="mt-4">
+                        <div class="form-group mb-4">
+                            <label for="email">Nombre de usuario</label>
+                            <div class="input-group">
+                                <span class="input-group-text" id="basic-addon1"><span class="fas fa-envelope"></span></span>
+                                <input id="username" @bind="User.Username" class="form-control" type="text" placeholder="Nombre de usuario" autofocus required>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="email">Nombre de usuario</label>
+                            <div class="input-group mb-4">
+                                <span class="input-group-text" id="basic-addon1"><span class="fas fa-lock"></span></span>
+                                <input id="password" @bind="User.Password" class="form-control" type="password" placeholder="Contraseña" required>
+                            </div>
+
+                            <div class="d-flex justify-content-between align-items-top mb-4">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" value="" id="remember">
+                                    <label class="form-check-label mb-0" for="remember">
+                                        Recuerdame
+                                    </label>
+                                </div>
+                                <div><a href="forgot-password" class="small text-right">Olvidaste tu contraseña?</a></div>
+                            </div>
+                        </div>
+                        <button type="submit" OnClick="(() => LoginEditForm.OnSubmit.InvokeAsync())" class="btn btn-primary btn-block">Ingresar</button>
+                    </EditForm>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+@code {
+
+    private UserPassword User;
+    private EditForm LoginEditForm;
+
+    protected override async Task OnInitializedAsync()
+    {
+        User = new UserPassword();
+    }
+
+    private async Task TryLogin()
+    {
+        if (User.Username != "admin" && User.Password != "admin")
+        {
+            await JsRuntime.InvokeAsync<string>("alert", $"Usuario o Contraseña erroneos");
+        }
+        else
+        {
+            sessionManager.Username = User.Username;
+            sessionManager.IsLoggedIn = true;
+            NavigationManager.NavigateTo("index");
+        }
+    }
+
+    @using System.ComponentModel.DataAnnotations;
+    public class UserPassword
+    {
+        [Required(ErrorMessage = "Campo requerido")]
+        public string Username { get; set; }
+        [Required(ErrorMessage = "Campo requerido")]
+        public string Password { get; set; }
+    }
+}

@@ -1,0 +1,18 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+
+namespace EstacionamientoMedido.Models
+{
+    public class Infraccion
+    {
+        public string Patente { get; set; }
+        public string FechaHoraRegistro { get; set; }
+        public string FechaHoraActualizacion { get; set; }
+        public string DireccionRegistrada { get; set; }
+        public string TipoInfraccion { get; set; }
+        public string MontoAPagar { get; set; }
+        public Deposito Deposito { get; set; }
+    }
+}
