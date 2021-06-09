@@ -21,27 +21,31 @@ namespace EstacionamientoMedido.Services
             _HttpClient = httpClient;
         }
 
-        public async Task<List<InfraccionApi>> GetInfracciones(string patente)
+        public async Task<List<Infraccion>> GetInfracciones(string patente)
         {
             var infracciones = await _HttpClient.GetFromJsonAsync<InfraccionesDto>($"{_BaseUrl}/{patente}/infracciones");
+            var tiposInfraccion = await GetTiposInfraccionList();
             //var tiposInfraccion = await _HttpClient.GetFromJsonAsync<TipoInfraccionDto[]>($"{_BaseUrl}/tiposInfraccion/");
 
 
-            var response = await Task.WhenAll(infracciones.infracciones.Select(async infraccion => new InfraccionApi()
+            var response = await Task.WhenAll(infracciones.infracciones.Select(async infraccion => new Infraccion()
             {
+                Id = infraccion.id,
                 Patente = infraccion.patente,
                 DireccionRegistrada = infraccion.direccionRegistrada,
                 FechaHoraActualizacion = infraccion.fechaHoraActualizacion,
                 FechaHoraRegistro = infraccion.fechaHoraRegistro,
                 MontoAPagar = infraccion.montoAPagar,
-                TipoInfraccion = await GetTipoInfraccion(infraccion.tipoInfraccion),
-                Deposito = infraccion.existeAcarreo ? await GetDepositoAcarreo(infraccion.patente, infraccion.id) : null
+                TipoInfraccion = tiposInfraccion.FirstOrDefault(x => x.id == infraccion.tipoInfraccion).descripcion,
+                //TipoInfraccion = await GetTipoInfraccion(infraccion.tipoInfraccion),
+                existeAcarreo = infraccion.existeAcarreo
+                //Deposito = infraccion.existeAcarreo ? await GetDepositoAcarreo(infraccion.patente, infraccion.id) : null
             }));
 
             return response.ToList();
         }
 
-        private async Task<DepositoApi> GetDepositoAcarreo(string patente, int idInfraccion)
+        private async Task<Deposito> GetDepositoAcarreo(string patente, int idInfraccion)
         {
             //var response = await _HttpClient.GetAsync($"{_BaseUrl}/{patente}/acarreos/{idInfraccion}/");
             //var asd = JsonConvert.DeserializeObject(response) ["acarreo"].ToList();
@@ -56,13 +60,13 @@ namespace EstacionamientoMedido.Services
             } 
 
             var acarreo = product.acarreo.deposito;
-            var ubicacion = new UbicacionApi()
+            var ubicacion = new Ubicacion()
             {
                 Latitud = acarreo.ubicacion.lat,
                 Longitud = acarreo.ubicacion.lon
             };
 
-            var acarreo2 = new DepositoApi()
+            var acarreo2 = new Deposito()
             {
                 Nombre = acarreo.nombre,
                 Direccion = acarreo.direccion,
@@ -83,6 +87,18 @@ namespace EstacionamientoMedido.Services
                 infraccion = await response.Content.ReadAsAsync<TipoInfraccionDto>();
             }
             return infraccion.tipo.descripcion;
+        }
+
+        private async Task<List<TipoDto>> GetTiposInfraccionList()
+        {
+            TiposInfraccionDto tiposInfraccion = null;
+            HttpResponseMessage response = await _HttpClient.GetAsync($"{_BaseUrl}/tiposInfraccion");
+            if (response.IsSuccessStatusCode)
+            {
+                tiposInfraccion = await response.Content.ReadAsAsync<TiposInfraccionDto>();
+            }
+
+            return tiposInfraccion.tipos.Select(x => new TipoDto() { id = x.id, descripcion = x.descripcion }).ToList();
         }
 
     }

@@ -28,7 +28,7 @@ namespace EstacionamientoMedido
             builder.Services.AddBlazorLeafletMaps();
 
             ConfigureServices(builder.Services);
-
+            
             await builder.Build().RunAsync();
         }
 

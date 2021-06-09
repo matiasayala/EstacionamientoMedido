@@ -1,81 +1,178 @@
 ﻿@page "/index"
 
 
-@inject InfraccionesService infraccionesService
+@inject InfraccionesService _InfraccionesService
 
 
-<h1>Hello, world!</h1>
 
-Welcome to your new app.
-
-@*<SurveyPrompt Title="How is Blazor working for you?" />*@
-
-<div class="card-body p-1">
-    @if (infraccionesList == null)
-    {
-        <div class="text-center mt-5 mb-5">
-            <div class="spinner-border" role="status">
-                <span class="sr-only" />
+<div class="row justify-content-center">
+    <div class="col-12 col-md-8 text-center">
+        <h1 class="display-3 mb-4">Buscador de Infracciones</h1>
+        <p class="lead mb-5">La informacion de las infracciones se actualiza de forma periódica.</p>
+    </div>
+</div>
+<div class="mb-4">
+    <EditForm @ref="InfraccionEditForm" Model="@InfraccionFilter" OnSubmit="@Search">
+        <div class="row">
+            <div class="col-12">
+                <label for="exampleInputEmail6">Direccion</label>
+                <InputTextArea class="form-control" placeholder="Datos de la direccion de la infraccion..." @bind-Value="InfraccionFilter.Direccion" />
+                <small id="emailHelp" class="form-text text-gray">label small</small>
             </div>
         </div>
+        <div class="row mt-3">
+            <div class="col-auto">
+                <label for="exampleInputDate3">Vehiculo</label>
+                <InputSelect class="form-select mb-0" @bind-Value="InfraccionFilter.Patente">
+                    <option selected value=@string.Empty>Seleccione...</option>
+                    @foreach (var item in vehiculosList)
+                    {
+                        <option value="@item.Patente">@item.Patente</option>
+                    }
+                </InputSelect>
+            </div>
+            <div class="col-auto">
+                <label for="exampleInputDate3">Tipo</label>
+                <InputSelect class="form-select mb-0" @bind-Value="InfraccionFilter.Tipo">
+                    <option selected value=@string.Empty>Seleccione...</option>
+                    @foreach (var item in InfraccionTipoList)
+                    {
+                        <option value="@item">@item</option>
+                    }
+                </InputSelect>
+            </div>
+            <div class="col-auto">
+                <label for="exampleInputDate2">Desde</label>
+                <div class="form-group">
+                    <div class="input-group input-group-border">
+                        <span class="input-group-text" id="basic-addonDate2">
+                            <span class="fas far fa-calendar-alt">
+                            </span>
+                        </span>
+                        <input class="form-control datepicker-input" data-datepicker type="date" @bind-value="InfraccionFilter.DateRegistroFrom">
+                    </div>
+                </div>
+            </div>
+            <div class="col-auto">
+                <div class="form-group">
+                    <label for="exampleInputDate3">Hasta</label>
+                    <div class="input-group input-group-border">
+                        <span class="input-group-text" id="basic-addonDate3">
+                            <span class="fas far fa-calendar-alt"></span>
+                        </span>
+                        <input class="form-control datepicker-input" data-datepicker type="date" @bind-value="InfraccionFilter.DateRegistroFrom" />
+                    </div>
+                </div>
+            </div>
+            <div class="col mt-4 pt-2">
+                <ButtonComponent type="submit" OnClick="(() => InfraccionEditForm.OnSubmit.InvokeAsync())" class="btn btn-info">Buscar</ButtonComponent>
+            </div>
+        </div>
+    </EditForm>
+</div>
+
+
+
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center py-4">
+    <div class="d-block mb-4 mb-md-0">
+        @if (infraccionesList != null && infraccionesList.Any())
+        {
+            <h2 class="h4">Resultado: @totalInfracciones Infracciones.</h2>
+        }
+        else
+        {
+            <h2 class="h4">Buscando infracciones...</h2>
+        }
+    </div>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <div class="btn-group">
+            <ButtonComponent type="button" OnClick="(() => ExportarCSV())" class="btn btn-sm btn-outline-primary">Exportar a CSV</ButtonComponent>
+        </div>
+    </div>
+</div>
+
+<div class="table-responsive">
+
+    <table class="table align-items-center table-flush">
+        <thead class="thead-light">
+            <tr>
+                <th>Tipo</th>
+                <th>Direccion</th>
+                <th>Monto</th>
+                <th>Hora Registro</th>
+                <th>Hora Actualizacion</th>
+                <th>Acarreo</th>
+                <th>#</th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (infraccionesList != null && infraccionesList.Any())
+                @foreach (var infraccion in infraccionesList)
+                {
+                    <tr>
+                        <td>@infraccion.TipoInfraccion</td>
+                        <td>@infraccion.DireccionRegistrada</td>
+                        <td>@infraccion.MontoAPagar</td>
+                        <td>@infraccion.FechaHoraRegistro</td>
+                        <td>@infraccion.FechaHoraActualizacion</td>
+                        @if (infraccion.existeAcarreo)
+                        {
+                            <td><i class="fa fa-check text-success text" /></td>
+                        }
+                        else
+                        {
+                            <td><i class="fa fa-times text-danger text" /></td>
+                        }
+                        <td class="text-nowrap">
+                            <ButtonComponent OnClick="(() => Detalles(infraccion.Id, infraccion.Patente))" class="btn btn-xs btn-outline-dark">Detalle</ButtonComponent>
+                        </td>
+                    </tr>
+                }
+        </tbody>
+    </table>
+    @if (infraccionesList == null)
+    {
+        <LoadingComponent></LoadingComponent>
     }
     else if (!infraccionesList.Any())
     {
-        <div class="text-center mt-5 mb-5">
-            <p class="text m-0 p-0 font-weight-bold">No se encontraron registros</p>
-        </div>
-    }
-    else
-    {
-            <table class="table-auto">
-                <thead>
-                    <tr>
-                        <th>Tipo</th>
-                        <th>Direccion</th>
-                        <th>Monto</th>
-                        <th>Hora Registro</th>
-                        <th>Hora Actualizacion</th>
-                        <th>Acarreo</th>
-                        <th>Acciones</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach (var infraccion in infraccionesList)
-                    {
-                        <tr>
-                            <td>@infraccion.TipoInfraccion</td>
-                            <td>@infraccion.DireccionRegistrada</td>
-                            <td>@infraccion.MontoAPagar</td>
-                            <td>@infraccion.FechaHoraRegistro</td>
-                            <td>@infraccion.FechaHoraActualizacion</td>
-                            @if (infraccion.Deposito != null)
-                            {
-                                <td><i class="fa fa-check text-success text" /></td>
-                            }
-                            else
-                            {
-                                <td><i class="fa fa-times text-danger text" /></td>
-                            }
-                            <td>@infraccion.FechaHoraActualizacion</td>
-                            <td class="text-center">
-                                <button class="btn fa fa-info-circle bg-transparent text-info pr-1 pl-1" data-toggle="tooltip" title="Ver Detalles"></button>
-                            </td>
-                        </tr>
-                    }
-                </tbody>
-            </table>
+        <NoRecordsFoundComponent></NoRecordsFoundComponent>
     }
 </div>
 
 
-@code{
-    private List<InfraccionApi> infraccionesList;
+@code {
+    private EditForm InfraccionEditForm;
+
+    private List<Infraccion> infraccionesList;
+    private int totalInfracciones;
+
+    private List<Vehiculo> vehiculosList = new List<Vehiculo>();
+    private InfraccionFilter InfraccionFilter = new InfraccionFilter();
+    private List<string> InfraccionTipoList = new List<string>();
+    private DateTime? DateFrom = null;
+    private DateTime? DateTo = null;
 
     protected override async Task OnInitializedAsync()
     {
+        infraccionesList = await _InfraccionesService.GetInfracciones("ABC123");
+        totalInfracciones = infraccionesList.Count;
         await Task.Delay(4000);
-        infraccionesList = await infraccionesService.GetInfracciones("ABC123");
-
     }
 
+    private async Task Search()
+    {
+        infraccionesList = await _InfraccionesService.GetInfracciones("ABC123");
+    }
+
+
+    private async Task ExportarCSV()
+    {
+        await Task.Delay(4000);
+    }
+
+    private async Task Detalles(int infraccionId, string infraccionPatente)
+    {
+        await Task.Delay(4000);
+    }
 }

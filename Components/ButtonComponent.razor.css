@@ -1,0 +1,32 @@
+﻿
+.hideParent {
+    display: contents;
+}
+
+    .hideParent > * {
+        visibility: hidden;
+        font-size: 0px;
+    }
+
+        .hideParent > * > * {
+            visibility: visible;
+            display: block;
+            float: left;
+            font-size: 1rem;
+        }
+
+.buttonMinSize > * {
+    min-width: 30px;
+    min-height: 34px;
+}
+
+.btn-digip-modal {
+    padding-left: calc(0.3vw + 0.3vh + 0.3rem);
+    padding-right: calc(0.3vw + 0.3vh + 0.3rem);
+    padding-top: calc(0.2vw + 0.2vh + 0.1rem);
+    padding-bottom: calc(0.2vw + 0.2vh + 0.1rem);
+    margin-top: 0.5vh;
+    margin-bottom: 0.5vh;
+    margin-left: calc(0.1vw + 0.1vh + 0.1rem);
+    margin-right: calc(0.1vw + 0.1vh + 0.1rem);
+}

@@ -29,7 +29,7 @@ Welcome to your new app.
     private MapOptions mapOptions;
     List<Comercio> comerciosList;
     List<Zona> ZonasList;
-    List<Ubicacion> UbicacionesList;
+    List<Entities.Ubicacion> UbicacionesList;
 
     protected override async Task OnInitializedAsync()
     {
@@ -61,7 +61,7 @@ Welcome to your new app.
         {
             Weight = 2,
             Color = "#4d29ff",
-            FillOpacity= 0.2
+            FillOpacity = 0.2,
         };
         var zona2 = new PolygonOptions()
         {
@@ -99,8 +99,9 @@ Welcome to your new app.
         {
             Opacity = 1,
             Draggable = false,
+            RiseOnHover = true,
+            Title = "Ocupado",
             IconRef = await this.IconFactory.Create(IconOcupado),
-            Alt="asd22",
         };
         var IconLibre = new IconOptions()
         {
@@ -113,9 +114,9 @@ Welcome to your new app.
         {
             Opacity = 1,
             Draggable = false,
+            RiseOnHover = true,
             Title = "Libre",
             IconRef = await this.IconFactory.Create(IconLibre),
-            Attribution="asd",
         };
         int i = 0;
         foreach (var ubicacion in UbicacionesList)
