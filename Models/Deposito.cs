@@ -11,6 +11,6 @@ namespace EstacionamientoMedido.Models
         public string Direccion { get; set; }
         public string Telefono { get; set; }
         public string Horarios { get; set; }
-        public Ubicacion Ubicacion { get; set; }
+        public Lugar Ubicacion { get; set; }
     }
 }

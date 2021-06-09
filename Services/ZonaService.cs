@@ -35,7 +35,7 @@ namespace EstacionamientoMedido.Services
             var zona1 = new Zona()
             {
                 id = 1,
-                Color = "Violeta",
+                Color = "Amarilla",
                 Costo2hs = 10,
                 Costo4hs = 15,
                 Vertices = new List<LatLong>() { p1, p2, p3, p4 }
@@ -65,7 +65,7 @@ namespace EstacionamientoMedido.Services
             var zona2 = new Zona()
             {
                 id = 2,
-                Color = "Verde",
+                Color = "Violeta",
                 Costo2hs = 7,
                 Costo4hs = 11,
                 Vertices = new List<LatLong>() { p1, p2, p3, p4 }

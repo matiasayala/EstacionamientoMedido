@@ -29,7 +29,7 @@ Welcome to your new app.
     private MapOptions mapOptions;
     List<Comercio> comerciosList;
     List<Zona> ZonasList;
-    List<Entities.Ubicacion> UbicacionesList;
+    List<Ubicacion> UbicacionesList;
 
     protected override async Task OnInitializedAsync()
     {
@@ -66,7 +66,7 @@ Welcome to your new app.
         var zona2 = new PolygonOptions()
         {
             Weight = 2,
-            Color = "##ffff29",
+            Color = "#ffff29",
             FillOpacity = 0.3
         };
         int i = 0;
@@ -123,7 +123,7 @@ Welcome to your new app.
         {
             i = i + 1;
             var reserva = await MarkerFactory.Create(new LatLng(ubicacion.Latitud, ubicacion.Longitud), i % 2 == 0 ? markerOptionsLibre : markerOptionsOcupado);
-            await reserva.BindPopup($"reservado/libre");
+            await reserva.BindTooltip($"reservado/libre");
             await reserva.OnClick(OnClickUbicacion);
 
             await reserva.AddTo(mapRef);
@@ -143,23 +143,27 @@ Welcome to your new app.
 
     private async Task OnClickUbicacion(MouseEvent m)
     {
-        //var zona = ZonasList.FirstOrDefault(x => x. == m.LatLng.Lat && x.Longitud == m.LatLng.Lng);
-        //if (comercio != null)
-        await JsRuntime.InvokeAsync<string>("alert", $"Se clickeo una ubicacion");
+        var ubicacion = UbicacionesList.FirstOrDefault(x => x.Latitud == m.LatLng.Lat && x.Longitud == m.LatLng.Lng);
+        if (ubicacion != null)
+            if (ubicacion.Reserva == null)
+                await JsRuntime.InvokeAsync<string>("alert", $"Ubicacion Libre");
+            else
+                await JsRuntime.InvokeAsync<string>("alert", $"Ubicacion Ocupada.\nHora Inicio: {ubicacion.Reserva.HoraInicio}.\nHora Fin: {ubicacion.Reserva.HoraFin}.");
     }
+
 
     private async Task OnClickZona(MouseEvent m)
     {
-        //var zona = ZonasList.FirstOrDefault(x => x. == m.LatLng.Lat && x.Longitud == m.LatLng.Lng);
-        //if (comercio != null)
-        await JsRuntime.InvokeAsync<string>("alert", $"Se clickeo una zona");
+        var zona = ZonasList.FirstOrDefault(x => x.Vertices.ContainsVertice(new LatLong() { Latitud = m.LatLng.Lat, Longitud = m.LatLng.Lng }));
+        if (zona != null)
+            await JsRuntime.InvokeAsync<string>("alert", $"Zona: {zona.Color}.\nCosto 2hs: ${zona.Costo2hs}\nCosto 4hs: ${zona.Costo4hs} ");
     }
 
     private async Task OnClickComercio(MouseEvent m)
     {
         var comercio = comerciosList.FirstOrDefault(x => x.Latitud == m.LatLng.Lat && x.Longitud == m.LatLng.Lng);
         if (comercio != null)
-            await JsRuntime.InvokeAsync<string>("alert", $" Comercio: {comercio.Nombre}.\nDireccion: {comercio.Direccion}.\nRubro: {comercio.Rubro}");
+            await JsRuntime.InvokeAsync<string>("alert", $"Comercio: {comercio.Nombre}.\nDireccion: {comercio.Direccion}.\nRubro: {comercio.Rubro}");
     }
 
     private void InicializarMapa()

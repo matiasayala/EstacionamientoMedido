@@ -60,7 +60,7 @@ namespace EstacionamientoMedido.Services
             } 
 
             var acarreo = product.acarreo.deposito;
-            var ubicacion = new Ubicacion()
+            var ubicacion = new Lugar()
             {
                 Latitud = acarreo.ubicacion.lat,
                 Longitud = acarreo.ubicacion.lon
