@@ -5,12 +5,12 @@ using System.Threading.Tasks;
 
 namespace EstacionamientoMedido.Models
 {
-    public class Deposito
+    public class DepositoApi
     {
         public string Nombre { get; set; }
         public string Direccion { get; set; }
         public string Telefono { get; set; }
         public string Horarios { get; set; }
-        public Ubicacion Ubicacion { get; set; }
+        public UbicacionApi Ubicacion { get; set; }
     }
 }

@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace EstacionamientoMedido.Models
 {
-    public class Ubicacion
+    public class UbicacionApi
     {
         public double Latitud { get; set; }
         public double Longitud { get; set; }

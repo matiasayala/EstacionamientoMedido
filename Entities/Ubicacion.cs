@@ -7,9 +7,11 @@ namespace EstacionamientoMedido.Entities
 {
     public class Ubicacion
     {
-        public string Numero { get; set; }
+        public int Id { get; set; }
         public double Latitud { get; set; }
         public double Longitud { get; set; }
+        public Zona Zona { get; set; }
+        public Reserva Reserva { get; set; }
 
     }
 }

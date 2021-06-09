@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace EstacionamientoMedido.Models
 {
-    public class Infraccion
+    public class InfraccionApi
     {
         public string Patente { get; set; }
         public string FechaHoraRegistro { get; set; }
@@ -13,6 +13,6 @@ namespace EstacionamientoMedido.Models
         public string DireccionRegistrada { get; set; }
         public string TipoInfraccion { get; set; }
         public string MontoAPagar { get; set; }
-        public Deposito Deposito { get; set; }
+        public DepositoApi Deposito { get; set; }
     }
 }

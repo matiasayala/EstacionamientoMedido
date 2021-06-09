@@ -1,6 +1,8 @@
 ﻿@page "/Mapa"
 
 @inject ComercioService comercioService
+@inject ZonaService zonaService
+@inject UbicacionesService ubicacionesService
 
 <h1>Hello, world!</h1>
 
@@ -8,15 +10,16 @@ Welcome to your new app.
 
 @*<SurveyPrompt Title="How is Blazor working for you?" />*@
 
-<button class="btn btn-primary" @onclick="MostrarComercios">MostrarComercios</button>
 <button class="btn btn-primary" @onclick="PosicionInicial">PosicionInicial</button>
 <button class="btn btn-primary" @onclick="MostrarComercios">MostrarComercios</button>
+<button class="btn btn-primary" @onclick="MostrarZonas">MostrarZonas</button>
+<button class="btn btn-primary" @onclick="MostrarUbicaciones">MostrarUbicaciones</button>
 
 <Map @ref="mapRef" MapOptions="@mapOptions"></Map>
 
 <style>
     #mapId {
-        height: 400px;
+        height: 900px;
     }
 </style>
 
@@ -25,37 +28,15 @@ Welcome to your new app.
     private LatLng inicial;
     private MapOptions mapOptions;
     List<Comercio> comerciosList;
+    List<Zona> ZonasList;
+    List<Ubicacion> UbicacionesList;
 
-    protected override void OnInitialized()
-    {
-        inicial = new LatLng(-34.520887, -58.702172); //UNGS
-
-        mapOptions = new MapOptions()
-        {
-            DivId = "mapId",
-            Center = inicial,
-            Zoom = 13,
-            UrlTileLayer = "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
-            SubOptions = new MapSubOptions()
-            {
-                Attribution = "&copy; <a lhref='http://www.openstreetmap.org/copyright'>OpenStreetMap</a>",
-                TileSize = 512,
-                ZoomOffset = -1,
-                MaxZoom = 19,
-            }
-        };
-
-
-    }
     protected override async Task OnInitializedAsync()
     {
+        InicializarMapa();
         comerciosList = await comercioService.GetComerciosCercanos();
-    }
-
-    private async Task PosicionInicial()
-    {
-        //LatLng center = await this.mapRef.GetCenter();
-        await JsRuntime.InvokeAsync<string>("alert", $"Te encuentras en: Lat: {inicial.Lat}, Lng: {inicial.Lng}");
+        ZonasList = await zonaService.GetZonas();
+        UbicacionesList = await ubicacionesService.GetUbicaciones();
     }
 
     private async Task MostrarComercios()
@@ -74,12 +55,130 @@ Welcome to your new app.
 
     }
 
+    private async Task MostrarZonas()
+    {
+        var zona1 = new PolygonOptions()
+        {
+            Weight = 2,
+            Color = "#4d29ff",
+            FillOpacity= 0.2
+        };
+        var zona2 = new PolygonOptions()
+        {
+            Weight = 2,
+            Color = "##ffff29",
+            FillOpacity = 0.3
+        };
+        int i = 0;
+        foreach (var zona in ZonasList)
+        {
+            i = i + 1;
+            var poly = await PolygonFactory.Create(zona.Vertices.ToLeafletLatLng(), i % 2 == 0 ? zona1 : zona2);
+            await poly.BindPopup($"Costo: 2hs={zona.Costo2hs} - 4hs={zona.Costo4hs}");
+            await poly.OnClick(OnClickZona);
+
+            await poly.AddTo(mapRef);
+
+            //if (await marker.IsPopupOpen())
+            //    await PosicionInicial();
+        }
+    }
+
+    private async Task MostrarUbicaciones()
+    {
+
+        var IconOcupado = new IconOptions()
+        {
+            IconUrl = "/img/UbicacionReservada2.png",
+            IconSize = new Point(25, 25),
+            PopupAnchor = new Point(20, 20),
+            TooltipAnchor = new Point(0, -20),
+            ClassName = "a1",
+        };
+        MarkerOptions markerOptionsOcupado = new MarkerOptions()
+        {
+            Opacity = 1,
+            Draggable = false,
+            IconRef = await this.IconFactory.Create(IconOcupado),
+            Alt="asd22",
+        };
+        var IconLibre = new IconOptions()
+        {
+            IconUrl = "/img/UbicacionLibre2.png",
+            IconSize = new Point(25, 25),
+            PopupAnchor = new Point(20, 20),
+            TooltipAnchor = new Point(0, -20),
+        };
+        MarkerOptions markerOptionsLibre = new MarkerOptions()
+        {
+            Opacity = 1,
+            Draggable = false,
+            Title = "Libre",
+            IconRef = await this.IconFactory.Create(IconLibre),
+            Attribution="asd",
+        };
+        int i = 0;
+        foreach (var ubicacion in UbicacionesList)
+        {
+            i = i + 1;
+            var reserva = await MarkerFactory.Create(new LatLng(ubicacion.Latitud, ubicacion.Longitud), i % 2 == 0 ? markerOptionsLibre : markerOptionsOcupado);
+            await reserva.BindPopup($"reservado/libre");
+            await reserva.OnClick(OnClickUbicacion);
+
+            await reserva.AddTo(mapRef);
+
+            //if (await marker.IsPopupOpen())
+            //    await PosicionInicial();
+        }
+
+    }
+
+
+    private async Task PosicionInicial()
+    {
+        //LatLng center = await this.mapRef.GetCenter();
+        await JsRuntime.InvokeAsync<string>("alert", $"Te encuentras en: Lat: {inicial.Lat}, Lng: {inicial.Lng}");
+    }
+
+    private async Task OnClickUbicacion(MouseEvent m)
+    {
+        //var zona = ZonasList.FirstOrDefault(x => x. == m.LatLng.Lat && x.Longitud == m.LatLng.Lng);
+        //if (comercio != null)
+        await JsRuntime.InvokeAsync<string>("alert", $"Se clickeo una ubicacion");
+    }
+
+    private async Task OnClickZona(MouseEvent m)
+    {
+        //var zona = ZonasList.FirstOrDefault(x => x. == m.LatLng.Lat && x.Longitud == m.LatLng.Lng);
+        //if (comercio != null)
+        await JsRuntime.InvokeAsync<string>("alert", $"Se clickeo una zona");
+    }
 
     private async Task OnClickComercio(MouseEvent m)
     {
         var comercio = comerciosList.FirstOrDefault(x => x.Latitud == m.LatLng.Lat && x.Longitud == m.LatLng.Lng);
         if (comercio != null)
             await JsRuntime.InvokeAsync<string>("alert", $" Comercio: {comercio.Nombre}.\nDireccion: {comercio.Direccion}.\nRubro: {comercio.Rubro}");
+    }
+
+    private void InicializarMapa()
+    {
+        inicial = new LatLng(-34.520887, -58.702172); //UNGS
+
+        mapOptions = new MapOptions()
+        {
+            DivId = "mapId",
+            Center = inicial,
+            Zoom = 13,
+            UrlTileLayer = "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+            SubOptions = new MapSubOptions()
+            {
+                Attribution = "&copy; <a lhref='http://www.openstreetmap.org/copyright'>OpenStreetMap</a>",
+                TileSize = 512,
+                ZoomOffset = -1,
+                MaxZoom = 19,
+            }
+        };
     }
 
 }

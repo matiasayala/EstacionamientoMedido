@@ -36,6 +36,8 @@ namespace EstacionamientoMedido
         {
             services.AddScoped<ComercioService>();
             services.AddScoped<InfraccionesService>();
+            services.AddScoped<UbicacionesService>();
+            services.AddScoped<ZonaService>();
             services.AddSingleton<SessionManager>();
 
         }

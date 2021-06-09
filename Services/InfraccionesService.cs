@@ -21,13 +21,13 @@ namespace EstacionamientoMedido.Services
             _HttpClient = httpClient;
         }
 
-        public async Task<List<Infraccion>> GetInfracciones(string patente)
+        public async Task<List<InfraccionApi>> GetInfracciones(string patente)
         {
             var infracciones = await _HttpClient.GetFromJsonAsync<InfraccionesDto>($"{_BaseUrl}/{patente}/infracciones");
             //var tiposInfraccion = await _HttpClient.GetFromJsonAsync<TipoInfraccionDto[]>($"{_BaseUrl}/tiposInfraccion/");
 
 
-            var response = await Task.WhenAll(infracciones.infracciones.Select(async infraccion => new Infraccion()
+            var response = await Task.WhenAll(infracciones.infracciones.Select(async infraccion => new InfraccionApi()
             {
                 Patente = infraccion.patente,
                 DireccionRegistrada = infraccion.direccionRegistrada,
@@ -41,7 +41,7 @@ namespace EstacionamientoMedido.Services
             return response.ToList();
         }
 
-        private async Task<Deposito> GetDepositoAcarreo(string patente, int idInfraccion)
+        private async Task<DepositoApi> GetDepositoAcarreo(string patente, int idInfraccion)
         {
             //var response = await _HttpClient.GetAsync($"{_BaseUrl}/{patente}/acarreos/{idInfraccion}/");
             //var asd = JsonConvert.DeserializeObject(response) ["acarreo"].ToList();
@@ -56,13 +56,13 @@ namespace EstacionamientoMedido.Services
             } 
 
             var acarreo = product.acarreo.deposito;
-            var ubicacion = new Ubicacion()
+            var ubicacion = new UbicacionApi()
             {
                 Latitud = acarreo.ubicacion.lat,
                 Longitud = acarreo.ubicacion.lon
             };
 
-            var acarreo2 = new Deposito()
+            var acarreo2 = new DepositoApi()
             {
                 Nombre = acarreo.nombre,
                 Direccion = acarreo.direccion,
