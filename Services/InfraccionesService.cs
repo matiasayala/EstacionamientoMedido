@@ -23,6 +23,9 @@ namespace EstacionamientoMedido.Services
 
         public async Task<List<Infraccion>> GetInfracciones(string patente)
         {
+            if (string.IsNullOrWhiteSpace(patente))
+                return null;
+
             var infracciones = await _HttpClient.GetFromJsonAsync<InfraccionesDto>($"{_BaseUrl}/{patente}/infracciones");
             var tiposInfraccion = await GetTiposInfraccionList();
             //var tiposInfraccion = await _HttpClient.GetFromJsonAsync<TipoInfraccionDto[]>($"{_BaseUrl}/tiposInfraccion/");
@@ -45,7 +48,7 @@ namespace EstacionamientoMedido.Services
             return response.ToList();
         }
 
-        private async Task<Deposito> GetDepositoAcarreo(string patente, int idInfraccion)
+        public async Task<Deposito> GetDepositoAcarreo(string patente, int idInfraccion)
         {
             //var response = await _HttpClient.GetAsync($"{_BaseUrl}/{patente}/acarreos/{idInfraccion}/");
             //var asd = JsonConvert.DeserializeObject(response) ["acarreo"].ToList();
