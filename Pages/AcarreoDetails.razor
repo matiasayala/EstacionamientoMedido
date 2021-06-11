@@ -1,0 +1,112 @@
+﻿@inject InfraccionesService _InfraccionesService
+
+
+<div class="list-group mb-3">
+    <div class="row justify-content-between" style="padding: 0.5rem 1rem;">
+        <div class="list-group-item d-flex justify-content-between lh-sm col-auto">
+            <div>
+                <h6 class="my-0">Nombre</h6>
+                <medium class="text-muted">@deposito.Nombre</medium>
+            </div>
+        </div>
+        <div class="list-group-item d-flex justify-content-between lh-sm col-auto">
+            <div>
+                <h6 class="my-0">Horario</h6>
+                <medium class="text-muted">@deposito.Horarios</medium>
+            </div>
+        </div>
+    </div>
+    <div class="row justify-content-between" style="padding: 0.5rem 1rem;">
+        <div class="list-group-item d-flex justify-content-between lh-sm col-auto">
+            <div>
+                <h6 class="my-0">Direccion</h6>
+                <medium class="text-muted">@deposito.Direccion</medium>
+            </div>
+        </div>
+        <div class="list-group-item d-flex justify-content-between lh-sm col-auto">
+            <div>
+                <h6 class="my-0">Telefono</h6>
+                <medium class="text-muted">@deposito.Telefono</medium>
+            </div>
+        </div>
+    </div>
+</div>
+<ButtonComponent type="submit" OnClick="Centrar" class="btn btn-info">Centrar</ButtonComponent>
+<div class="card">
+    <Map @ref="mapRef" MapOptions="@mapOptions"></Map>
+</div>
+
+<style>
+    #mapId {
+        height: 350px;
+    }
+</style>
+
+@*<div class="card-deck mb-0 text-center">
+        <div class="card mb-0 shadow-sm">
+            <div class="card-body">
+                <button type="button" class="btn btn-lg btn-block btn-primary my-3">Reservar turno*</button>
+                <button type="button" class="btn btn-lg btn-block btn-primary my-3">Ver mis turnos*</button>
+                <button type="button" class="btn btn-lg btn-block btn-primary my-3">Modificar mis datos personales</button>
+                <button type="button" class="btn btn-lg btn-block btn-primary my-3">Modificar mi cobertura medica</button>
+                <button type="button" class="btn btn-lg btn-block btn-primary my-3">Modificar mis metodos de pago</button>
+            </div>
+        </div>
+    </div>*@
+
+@code {
+    [CascadingParameter] DigipModalInstance DigipModalInstance { get; set; }
+    [Parameter] public int infraccionId { get; set; }
+    [Parameter] public string infraccionPatente { get; set; }
+
+    private Deposito deposito = new Deposito();
+    private Map mapRef;
+    private LatLng inicial;
+    private MapOptions mapOptions;
+
+    protected override void OnInitialized()
+    {
+
+        InicializarMapa();
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        deposito = await _InfraccionesService.GetDepositoAcarreo(infraccionPatente, infraccionId);
+        await Centrar();
+        await MostrarDeposito();
+
+    }
+
+    private async Task Centrar()
+    {
+        await mapRef.SetView(new LatLng(deposito.Ubicacion.Latitud, deposito.Ubicacion.Longitud));
+    }
+
+    private async Task MostrarDeposito()
+    {
+        var marker = await MarkerFactory.Create(new LatLng(deposito.Ubicacion.Latitud, deposito.Ubicacion.Longitud));
+        await marker.BindTooltip($"{deposito.Nombre}");
+        await marker.AddTo(mapRef);
+    }
+
+    private void InicializarMapa()
+    {
+        inicial = new LatLng(-34.520887, -58.702172); //UNGS
+
+        mapOptions = new MapOptions()
+        {
+            DivId = "mapId",
+            Center = inicial,
+            Zoom = 16,
+            UrlTileLayer = "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+            SubOptions = new MapSubOptions()
+            {
+                Attribution = "&copy; <a lhref='http://www.openstreetmap.org/copyright'>OpenStreetMap</a>",
+                TileSize = 512,
+                ZoomOffset = -1,
+                MaxZoom = 19,
+            }
+        };
+    }
+}

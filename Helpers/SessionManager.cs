@@ -10,22 +10,14 @@ namespace EstacionamientoMedido.Helpers
         public SessionManager()
         {
             Username = string.Empty;
-            IsLoggedIn = false;
         }
 
         public string Username { get; set; }
-        public bool IsLoggedIn { get; set; }
-
-        public void Logout()
-        {
-            Username = string.Empty;
-            IsLoggedIn = false;
-        }
 
 
         public bool IsUserLoggedIn()
         {
-            return IsLoggedIn;
+            return Username != null;
         }
 
     }

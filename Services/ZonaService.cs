@@ -8,7 +8,7 @@ namespace EstacionamientoMedido.Services
 {
     public class ZonaService
     {
-        public async Task<List<Zona>> GetZonas()
+        public List<Zona> GetZonas()
         {
             LatLong p1, p2, p3, p4;
             p1 = new LatLong()

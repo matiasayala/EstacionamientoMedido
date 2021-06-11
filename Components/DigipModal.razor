@@ -1,0 +1,51 @@
+﻿@using System.Collections.ObjectModel
+
+<CascadingValue Value="this">
+    @foreach (var modal in Modals)
+    {
+        @modal.ModalInstance
+    }
+</CascadingValue>
+
+@code {
+    [Inject] private IDigipModalService DigipModalService { get; set; }
+    [Inject] private NavigationManager NavigationManager { get; set; }
+
+    private readonly Collection<DigipModalReference> Modals = new Collection<DigipModalReference>();
+
+    protected override void OnInitialized()
+    {
+        ((DigipModalService)DigipModalService).OnModalInstanceAdded += Update;
+        NavigationManager.LocationChanged += CancelModals;
+
+    }
+    private async void Update(DigipModalReference modalReference)
+    {
+        Modals.Add(modalReference);
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async void CancelModals(object sender, LocationChangedEventArgs e)
+    {
+        Modals.Clear();
+        await JsRuntime.ScrollUnlock();
+        await InvokeAsync(StateHasChanged);
+    }
+
+    internal async void DismissInstance(Guid Id, DigipModalResult result)
+    {
+        var reference = Modals.SingleOrDefault(x => x.Id == Id);
+
+        if (reference != null)
+        {
+            await Task.Delay(500); //espera a que termine la ejecucion de la animacion del modal para cerrarlo
+            reference.Dismiss(result);
+            Modals.Remove(reference);
+            StateHasChanged();
+        }
+        if (!Modals.Any())
+        {
+            await JsRuntime.ScrollUnlock();
+        }
+    }
+}

@@ -1,0 +1,28 @@
+﻿@inherits Microsoft.AspNetCore.Components.Forms.InputText
+
+<input @attributes="@AdditionalAttributes" class="@CssClass" @bind="@CurrentValueAsString" ValueChanged="" @bind:event="@BindEvent" />
+
+@code {
+    /// <summary>
+    /// https://github.com/dotnet/aspnetcore/issues/12657
+    /// </summary>
+
+    [Parameter] public string BindEvent { get; set; } = "onchange";
+
+    //private string _value;
+
+    //[Parameter]
+    //public string CurrentValue
+    //{
+    //    get => _value;
+    //    set
+    //    {
+    //        if (_value == value) return;
+    //        _value = value;
+    //        ValueChanged.InvokeAsync(value);
+    //    }
+    //}
+    //[Parameter] public string placeholder { get; set; } = "Contraseña";
+    //[Parameter] public string Class { get; set; }
+
+}

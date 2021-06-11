@@ -12,7 +12,7 @@ namespace EstacionamientoMedido.Services
 {
     public class ComercioService
     {
-        public async Task<List<Comercio>> GetComerciosCercanos()
+        public List<Comercio> GetComerciosCercanos()
         {
             var kioscoLaMorocha = new Comercio()
             {
@@ -176,7 +176,7 @@ namespace EstacionamientoMedido.Services
             };
 
 
-            return await Task.FromResult(comercios);
+            return comercios;
         }
     }
 

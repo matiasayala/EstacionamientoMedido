@@ -3,9 +3,12 @@ using System.Collections.Generic;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
+using EstacionamientoMedido.Auth;
+using EstacionamientoMedido.Components.DigipModalFiles;
 using EstacionamientoMedido.Helpers;
 using EstacionamientoMedido.Services;
 using FisSst.BlazorMaps.DependencyInjection;
+using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -26,6 +29,8 @@ namespace EstacionamientoMedido
             });
 
             builder.Services.AddBlazorLeafletMaps();
+            
+            
 
             ConfigureServices(builder.Services);
             
@@ -34,12 +39,18 @@ namespace EstacionamientoMedido
 
         private static void ConfigureServices(IServiceCollection services)
         {
-            services.AddScoped<ComercioService>();
+            services.AddAuthorizationCore();            
+            services.AddScoped<CustomAuthStateProvider>();
+            services.AddScoped<AuthenticationStateProvider, CustomAuthStateProvider>(provider => provider.GetRequiredService<CustomAuthStateProvider>());
+            services.AddScoped<ILoginService, CustomAuthStateProvider>(provider => provider.GetRequiredService<CustomAuthStateProvider>());
+
+            services.AddSingleton<SessionManager>();
+            services.AddScoped<AuthService>();
             services.AddScoped<InfraccionesService>();
             services.AddScoped<UbicacionesService>();
+            services.AddScoped<ComercioService>();
             services.AddScoped<ZonaService>();
-            services.AddSingleton<SessionManager>();
-
+            services.AddDigipModal();
         }
     }
 }

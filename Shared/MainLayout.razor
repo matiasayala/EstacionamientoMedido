@@ -1,28 +1,21 @@
 ﻿@inherits LayoutComponentBase
-@inject NavigationManager NavigationManager
-
-<NavMenu />
-
-<main>
-    <section class="section section-header text-dark pb-md-8">
-        <div class="container-lg">
-            @Body
-        </div>
-    </section>
-</main>
-
-<footer class="mt-auto text-white-50">
-    <p>Sistema de Estacionamiento Medido Powered by Grupo 7 © 2017–2021</p>
-</footer>
 
 
-@code{
+<AuthorizeView>
+    <Authorized>
+        <DigipModal />
+        <NavMenu />
+        <main>
+            <section class="text-dark mt-7">                
+                    @Body                
+            </section>
+        </main>
 
-    protected override void OnInitialized()
-    {
-
-        if (!sessionManager.IsUserLoggedIn())
-            NavigationManager.NavigateTo("Unauthorized");
-    }
-
-}
+        <footer class="mt-auto text-white-50">
+            <p>Sistema de Estacionamiento Medido Powered by Grupo 7 © 2017–2021</p>
+        </footer>
+    </Authorized>
+    <NotAuthorized>
+        <EstacionamientoMedido.Pages.Auth.RedirectToLogin></EstacionamientoMedido.Pages.Auth.RedirectToLogin>
+    </NotAuthorized>
+</AuthorizeView>

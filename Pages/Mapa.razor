@@ -4,58 +4,165 @@
 @inject ZonaService zonaService
 @inject UbicacionesService ubicacionesService
 
-<h1>Hello, world!</h1>
 
-Welcome to your new app.
+<section class="text-dark">
+    <div class="container-lg" style="max-width: 85vw;">
+        <div class="row g-5">
+            <div class="col-3">
+                <h4 class="d-flex justify-content-between align-items-center text-center mb-3">
+                    <span class="text-primary">Gestion General</span>
+                </h4>
+                <div class="card-deck mb-2 text-center">
+                    <div class="card mb-0 shadow-sm">
+                        <div class="card-body">
+                            <button class="btn btn-info btn-block" @onclick="PosicionInicial">Ir a Posicion Actual</button>
+                            <button class="btn btn-info btn-block" @onclick="() => MostrarOcultar(ref mostrarUbicacionActual, marker: UbicacionActualMarker)">@(mostrarUbicacionActual ? "Ocultar" : "Mostrar") Posicion Actual</button>
+                            <button class="btn btn-info btn-block" @onclick="() => MostrarOcultar(ref mostrarReservaActual, marker: ReservaActualMarker)">@(mostrarReservaActual ? "Ocultar" : "Mostrar") Reserva Actual</button>
+                            <button class="btn btn-info btn-block" @onclick="() => MostrarOcultar(ref mostrarComercios, markerList: ComerciosMarkers)">@(mostrarComercios ? "Ocultar" : "Mostrar") Comercios</button>
+                            <button class="btn btn-info btn-block" @onclick="() => MostrarOcultar(ref mostrarUbicaciones, markerList: UbicacionesMarkers)">@(mostrarUbicaciones ? "Ocultar" : "Mostrar") Ubicaciones</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-deck list-group mb-2">
+                    @if (queComponenteMostrar == 1)
+                    {
+                        <MapaUbicacionComponent></MapaUbicacionComponent>
+                    }
+                    else if (queComponenteMostrar == 2)
+                    {
+                        <MapaUbicacionReservadaComponent></MapaUbicacionReservadaComponent>
+                    }
+                    else if (queComponenteMostrar == 3)
+                    {
+                        <MapaComercioComponent comercio="ComercioClickeado"></MapaComercioComponent>
+                    }
+                    else if (queComponenteMostrar == 4)
+                    {
+                        <MapaZonaComponent zona="ZonaClickeada"></MapaZonaComponent>
+                    }
+                    else
+                    {
+                        <MapaGenericoComponent></MapaGenericoComponent>
+                    }
+                </div>
+            </div>
 
-@*<SurveyPrompt Title="How is Blazor working for you?" />*@
-
-<button class="btn btn-primary" @onclick="PosicionInicial">PosicionInicial</button>
-<button class="btn btn-primary" @onclick="MostrarComercios">MostrarComercios</button>
-<button class="btn btn-primary" @onclick="MostrarZonas">MostrarZonas</button>
-<button class="btn btn-primary" @onclick="MostrarUbicaciones">MostrarUbicaciones</button>
-
-<Map @ref="mapRef" MapOptions="@mapOptions"></Map>
-
-<style>
-    #mapId {
-        height: 900px;
-    }
-</style>
+            <div class="card col-9 order-md-last p-3">
+                <Map @ref="mapRef" MapOptions="@mapOptions"></Map>
+            </div>
+        </div>
+    </div>
+</section>
 
 @code {
     private Map mapRef;
-    private LatLng inicial;
     private MapOptions mapOptions;
+
+    private LatLng ubicacionActual = new LatLng(-34.521613, -58.700955);
+    private LatLng reservaActual = new LatLng(-34.519563, -58.707372);
     List<Comercio> comerciosList;
     List<Zona> ZonasList;
     List<Ubicacion> UbicacionesList;
 
-    protected override async Task OnInitializedAsync()
+    private Comercio ComercioClickeado;
+    private Zona ZonaClickeada;
+
+    List<Marker> UbicacionesMarkers = new List<Marker>();
+    List<Marker> ComerciosMarkers = new List<Marker>();
+    Marker ReservaActualMarker;
+    Marker UbicacionActualMarker;
+
+    private int queComponenteMostrar;
+
+    private bool mostrarComercios;
+    private bool mostrarUbicaciones;
+    private bool mostrarReservaActual;
+    private bool mostrarUbicacionActual;
+
+    protected override void OnInitialized()
     {
         InicializarMapa();
-        comerciosList = await comercioService.GetComerciosCercanos();
-        ZonasList = await zonaService.GetZonas();
-        UbicacionesList = await ubicacionesService.GetUbicaciones();
+        comerciosList = comercioService.GetComerciosCercanos();
+        ZonasList = zonaService.GetZonas();
+        UbicacionesList = ubicacionesService.GetUbicaciones();
     }
 
-    private async Task MostrarComercios()
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadComercios();
+        await LoadZonas();
+        await LoadUbicacionActual();
+        await LoadReservaActual();
+        await LoadUbicaciones();
+        await JsRuntime.MensajeToast("Se obtuvo la ubicacion actual correctamente");
+        MostrarOcultar(ref mostrarUbicacionActual, marker: UbicacionActualMarker);
+    }
+
+    private void MostrarOcultar(ref bool estado, List<Marker> markerList = null, Marker marker = null)
+    {
+        estado = !estado;
+        if (markerList != null)
+            foreach (var item in markerList)
+                if (estado) item.AddTo(mapRef); else item.RemoveFrom(mapRef);
+        else if(marker != null)
+            if (estado) marker.AddTo(mapRef); else marker.RemoveFrom(mapRef);
+    }
+
+
+    private async Task OnClickReservaActual(MouseEvent m)
+    {
+        queComponenteMostrar = 2;
+        StateHasChanged();
+        //await JsRuntime.InvokeAsync<string>("alert", $"Ubicacion Ocupada.\nHora Inicio: {ubicacion.Reserva.HoraInicio}.\nHora Fin: {ubicacion.Reserva.HoraFin}.");
+    }
+
+    private async Task OnClickUbicacion(MouseEvent m)
+    {
+        queComponenteMostrar = 1;
+        StateHasChanged();
+        //var ubicacion = UbicacionesList.FirstOrDefault(x => x.Latitud == m.LatLng.Lat && x.Longitud == m.LatLng.Lng);
+        //if (ubicacion != null)
+        //    if (ubicacion.Reserva == null)
+        //        await JsRuntime.InvokeAsync<string>("alert", $"Ubicacion Libre");
+        //    else
+        //        await JsRuntime.InvokeAsync<string>("alert", $"Ubicacion Ocupada.\nHora Inicio: {ubicacion.Reserva.HoraInicio}.\nHora Fin: {ubicacion.Reserva.HoraFin}.");
+    }
+
+    private async Task OnClickZona(MouseEvent m)
+    {
+        var zona = ZonasList.FirstOrDefault(x => x.Vertices.ContainsVertice(new LatLong() { Latitud = m.LatLng.Lat, Longitud = m.LatLng.Lng }));
+        if (zona != null)
+        {
+            ZonaClickeada = zona;
+            queComponenteMostrar = 4;
+            StateHasChanged();
+        }
+    }
+
+    private async Task OnClickComercio(MouseEvent m)
+    {
+        var comercio = comerciosList.FirstOrDefault(x => x.Latitud == m.LatLng.Lat && x.Longitud == m.LatLng.Lng);
+        if (comercio != null)
+        {
+            ComercioClickeado = comercio;
+            queComponenteMostrar = 3;
+            StateHasChanged();
+        }
+    }
+
+    private async Task LoadComercios()
     {
         foreach (var comercio in comerciosList)
         {
             var marker = await MarkerFactory.Create(new LatLng(comercio.Latitud, comercio.Longitud));
             await marker.BindTooltip($"{comercio.Nombre} - {comercio.HorarioAtencion}");
             await marker.OnClick(OnClickComercio);
-
-            await marker.AddTo(mapRef);
-
-            //if (await marker.IsPopupOpen())
-            //    await PosicionInicial();
+            //await marker.AddTo(mapRef);
+            ComerciosMarkers.Add(marker);
         }
-
     }
 
-    private async Task MostrarZonas()
+    private async Task LoadZonas()
     {
         var zona1 = new PolygonOptions()
         {
@@ -74,26 +181,43 @@ Welcome to your new app.
         {
             i = i + 1;
             var poly = await PolygonFactory.Create(zona.Vertices.ToLeafletLatLng(), i % 2 == 0 ? zona1 : zona2);
-            await poly.BindPopup($"Costo: 2hs={zona.Costo2hs} - 4hs={zona.Costo4hs}");
+            //await poly.BindPopup($"Costo: 2hs={zona.Costo2hs} - 4hs={zona.Costo4hs}");
             await poly.OnClick(OnClickZona);
-
             await poly.AddTo(mapRef);
-
-            //if (await marker.IsPopupOpen())
-            //    await PosicionInicial();
         }
     }
 
-    private async Task MostrarUbicaciones()
+    private async Task LoadUbicacionActual()
     {
+        var IconoUbiActual = new IconOptions()
+        {
+            IconUrl = "/img/UbicacionActual.png",
+            IconSize = new Point(28, 28),
+            PopupAnchor = new Point(20, 20),
+            TooltipAnchor = new Point(10, 0),
+        };
+        MarkerOptions markerOptionsUbiActual = new MarkerOptions()
+        {
+            Opacity = 1,
+            Draggable = false,
+            RiseOnHover = true,
+            Title = "Posicion actual",
+            IconRef = await this.IconFactory.Create(IconoUbiActual),
+        };
+        UbicacionActualMarker = await MarkerFactory.Create(ubicacionActual, markerOptionsUbiActual);
+        await UbicacionActualMarker.BindTooltip($"Ubicacion Actual");
+        await UbicacionActualMarker.OnClick(OnClickUbicacion);
+        //await UbicacionActualMarker.AddTo(mapRef);
+    }
 
+    private async Task LoadReservaActual()
+    {
         var IconOcupado = new IconOptions()
         {
             IconUrl = "/img/UbicacionReservada2.png",
             IconSize = new Point(25, 25),
             PopupAnchor = new Point(20, 20),
             TooltipAnchor = new Point(10, 0),
-            ClassName = "a1",
         };
         MarkerOptions markerOptionsOcupado = new MarkerOptions()
         {
@@ -103,6 +227,14 @@ Welcome to your new app.
             Title = "Ocupado",
             IconRef = await this.IconFactory.Create(IconOcupado),
         };
+        ReservaActualMarker = await MarkerFactory.Create(reservaActual, markerOptionsOcupado);
+        await ReservaActualMarker.BindTooltip($"Reserva Actual");
+        await ReservaActualMarker.OnClick(OnClickReservaActual);
+        //await ReservaActualMarker.AddTo(mapRef);
+    }
+
+    private async Task LoadUbicaciones()
+    {
         var IconLibre = new IconOptions()
         {
             IconUrl = "/img/UbicacionLibre2.png",
@@ -118,63 +250,28 @@ Welcome to your new app.
             Title = "Libre",
             IconRef = await this.IconFactory.Create(IconLibre),
         };
-        int i = 0;
         foreach (var ubicacion in UbicacionesList)
         {
-            i = i + 1;
-            var reserva = await MarkerFactory.Create(new LatLng(ubicacion.Latitud, ubicacion.Longitud), i % 2 == 0 ? markerOptionsLibre : markerOptionsOcupado);
-            await reserva.BindTooltip($"reservado/libre");
-            await reserva.OnClick(OnClickUbicacion);
-
-            await reserva.AddTo(mapRef);
-
-            //if (await marker.IsPopupOpen())
-            //    await PosicionInicial();
+            var posicion = await MarkerFactory.Create(new LatLng(ubicacion.Latitud, ubicacion.Longitud), markerOptionsLibre);
+            await posicion.BindTooltip($"Ubicacion Libre");
+            await posicion.OnClick(OnClickUbicacion);
+            //await posicion.AddTo(mapRef);
+            UbicacionesMarkers.Add(posicion);
         }
-
     }
-
 
     private async Task PosicionInicial()
     {
-        //LatLng center = await this.mapRef.GetCenter();
-        await JsRuntime.InvokeAsync<string>("alert", $"Te encuentras en: Lat: {inicial.Lat}, Lng: {inicial.Lng}");
-    }
-
-    private async Task OnClickUbicacion(MouseEvent m)
-    {
-        var ubicacion = UbicacionesList.FirstOrDefault(x => x.Latitud == m.LatLng.Lat && x.Longitud == m.LatLng.Lng);
-        if (ubicacion != null)
-            if (ubicacion.Reserva == null)
-                await JsRuntime.InvokeAsync<string>("alert", $"Ubicacion Libre");
-            else
-                await JsRuntime.InvokeAsync<string>("alert", $"Ubicacion Ocupada.\nHora Inicio: {ubicacion.Reserva.HoraInicio}.\nHora Fin: {ubicacion.Reserva.HoraFin}.");
-    }
-
-
-    private async Task OnClickZona(MouseEvent m)
-    {
-        var zona = ZonasList.FirstOrDefault(x => x.Vertices.ContainsVertice(new LatLong() { Latitud = m.LatLng.Lat, Longitud = m.LatLng.Lng }));
-        if (zona != null)
-            await JsRuntime.InvokeAsync<string>("alert", $"Zona: {zona.Color}.\nCosto 2hs: ${zona.Costo2hs}\nCosto 4hs: ${zona.Costo4hs} ");
-    }
-
-    private async Task OnClickComercio(MouseEvent m)
-    {
-        var comercio = comerciosList.FirstOrDefault(x => x.Latitud == m.LatLng.Lat && x.Longitud == m.LatLng.Lng);
-        if (comercio != null)
-            await JsRuntime.InvokeAsync<string>("alert", $"Comercio: {comercio.Nombre}.\nDireccion: {comercio.Direccion}.\nRubro: {comercio.Rubro}");
+        await mapRef.SetView(ubicacionActual);
     }
 
     private void InicializarMapa()
     {
-        inicial = new LatLng(-34.520887, -58.702172); //UNGS
-
         mapOptions = new MapOptions()
         {
             DivId = "mapId",
-            Center = inicial,
-            Zoom = 13,
+            Center = ubicacionActual,
+            Zoom = 15,
             UrlTileLayer = "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
             SubOptions = new MapSubOptions()
             {
@@ -187,3 +284,9 @@ Welcome to your new app.
     }
 
 }
+
+<style>
+    #mapId {
+        height: 750px;
+    }
+</style>

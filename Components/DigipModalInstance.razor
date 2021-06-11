@@ -1,0 +1,155 @@
+﻿<div class="digip-modal @BackgroundAnimation @SetHiddenNoBackground() @Cursor" style="transition: all 0.3s;">
+    @if (ModalOptions.BackgroundClickCancel)
+    {
+        <div class="digip-modal-background" @onclick="(() => Cancel())"></div>
+    }
+    else
+    {
+        <div class="digip-modal-background"></div>
+    }
+    <div class="digip-modal-content digip-modal-content-rounded @SetSize() @ModalAnimation @SetHidden()">
+        @if (!ModalOptions.HideHeader)
+        {
+            <div class="digip-modal-header @SetCardDesign()">
+
+                <h5 class="modal-title">@Title</h5>
+                @if (!ModalOptions.HideCloseButton)
+                {
+                    <button type="button" class="close digip-close-btn" data-dismiss="modal" aria-label="Close" @onclick="(() => Cancel())"></button>
+                }
+            </div>
+        }
+        <div class="digip-modal-body-scrollable p-@ModalOptions.ModalBodyPadding">
+            <CascadingValue Value="this">
+                @Content
+            </CascadingValue>
+        </div>
+        @*<div class="digip-modal-footer @SetCardDesign()">*@
+
+        @if (!ModalOptions.HideFooter)
+        {
+            <div class="digip-modal-footer digip-footer-card">
+
+                <ButtonComponent type="button" class="btn btn-secondary btn-digip-modal" OnClick="() => Cancel()">Cancelar</ButtonComponent>
+                <ButtonComponent type="button" class="btn btn-primary btn-digip-modal" OnClick="(() => Confirmar())">@ModalOptions.OkButtonText</ButtonComponent>
+                @*<button type="button" class="btn btn-secondary btn-digip-modal" @onclick="(() => Cancel())">Cancelar</button>
+                    <button type="button" class="btn btn-primary btn-digip-modal" @onclick="(() => Confirmar())">@ModalOptions.OkButtonText</button>*@
+
+            </div>
+        }
+    </div>
+</div>
+
+@code {
+    [CascadingParameter] private DigipModal Parent { get; set; }
+
+    [Parameter] public DigipModalOptions ModalOptions { get; set; }
+    [Parameter] public Guid Id { get; set; }
+    [Parameter] public string Title { get; set; } = "Modal Title";
+    [Parameter] public RenderFragment Content { get; set; }
+    public string ModalAnimation = "modalin";
+    public string BackgroundAnimation = "fadein";
+    public bool Hidden = false;
+    public bool HiddenNoBackground = false;
+    public string Cursor = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        Hidden = ModalOptions.StartHidden;
+        HiddenNoBackground = ModalOptions.StartHiddenNoBackground;
+        await JsRuntime.ScrollLock();
+    }
+
+    // Eventos del modalInstance //
+    //public event EventHandler EventoBtnConfirmar; //Evento a generar cuando se hace click en el boton confirmar
+
+    public delegate Task ButtonClick();
+    public ButtonClick SubmitButtonClick;
+
+    public async Task Confirmar()
+    {
+        try
+        {
+            //CursorLoading(true);
+            //StateHasChanged();
+            if (SubmitButtonClick is not null)
+                await SubmitButtonClick();
+            //EventoBtnConfirmar?.Invoke(this, EventArgs.Empty); //genera el evento (el evento debe ser capturado en el 'Content' de la instancia para realizar las acciones necesarias)
+        }
+        catch (Exception ex)
+        {
+            //CursorLoading(false);
+            throw ex;
+        }
+    }
+    public void Cancel()
+    {
+        ModalAnimation = "modalout";
+        BackgroundAnimation = "fadeout";
+        StateHasChanged();
+        Parent.DismissInstance(Id, DigipModalResult.Cancel());
+    }
+
+    // Funciones basicas del ModalInstance //
+    public void Ok()
+    {
+        CursorLoading(false);
+        ModalAnimation = "modalout";
+        BackgroundAnimation = "fadeout";
+        StateHasChanged();
+        Parent.DismissInstance(Id, DigipModalResult.Ok());
+    }
+
+    public void UnHide()
+    {
+        Hidden = false;
+        StateHasChanged();
+    }
+    public void Hide()
+    {
+        Hidden = true;
+        StateHasChanged();
+    }
+    public void UnHideNoBackground()
+    {
+        HiddenNoBackground = false;
+        StateHasChanged();
+    }
+    public void HideNoBackground()
+    {
+        HiddenNoBackground = true;
+        StateHasChanged();
+    }
+    public void CursorLoading(bool loadingState)
+    {
+        if (loadingState)
+            Cursor = " mouseWait removeParentEvents ";
+        else
+            Cursor = "";
+        StateHasChanged();
+    }
+
+    // Diseño del ModalInstance //
+    private string SetModalDialogExtraClasses() => SetSize(); // + SetScrollable();
+    private string SetSize()
+    {
+        switch (ModalOptions.Size)
+        {
+            //case ModalSize.Small:
+            //    return "digip-modal-sm ";
+            case ModalSize.Large:
+                return "digip-modal-lg ";
+            case ModalSize.ExtraLarge:
+                return "digip-modal-xl ";
+            //case ModalSize.FullScreen:
+            //    return "digip-modal-fullscreen ";
+            default:
+                return "digip-modal-md ";
+        }
+    }
+    //private string SetScrollable() => ModalOptions.ScrollableBody ? "digip-body-scrollable" : "";
+    private string SetCardDesign() => ModalOptions.CardDesign ? "card-header" : "";
+    private string SetHidden() => Hidden ? "hidden" : "";
+    private string SetHiddenNoBackground() => HiddenNoBackground ? "hidden" : "";
+
+}

@@ -8,7 +8,7 @@ using EstacionamientoMedido.Models;
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json;
 using System.Linq;
-
+using EstacionamientoMedido.Filters;
 
 namespace EstacionamientoMedido.Services
 {
@@ -21,32 +21,56 @@ namespace EstacionamientoMedido.Services
             _HttpClient = httpClient;
         }
 
-        public async Task<List<Infraccion>> GetInfracciones(string patente)
+        public async Task<List<Infraccion>> GetInfracciones(InfraccionFilter infraccionFilter)
         {
-            if (string.IsNullOrWhiteSpace(patente))
-                return null;
+            if (string.IsNullOrWhiteSpace(infraccionFilter.Patente))
+                return new List<Infraccion>();
 
-            var infracciones = await _HttpClient.GetFromJsonAsync<InfraccionesDto>($"{_BaseUrl}/{patente}/infracciones");
+            var infracciones = await _HttpClient.GetFromJsonAsync<InfraccionesDto>($"{_BaseUrl}/{infraccionFilter.Patente}/infracciones");
             var tiposInfraccion = await GetTiposInfraccionList();
             //var tiposInfraccion = await _HttpClient.GetFromJsonAsync<TipoInfraccionDto[]>($"{_BaseUrl}/tiposInfraccion/");
 
-
-            var response = await Task.WhenAll(infracciones.infracciones.Select(async infraccion => new Infraccion()
+            var response = new List<Infraccion>();
+            foreach (var infraccion in infracciones.infracciones)
             {
-                Id = infraccion.id,
-                Patente = infraccion.patente,
-                DireccionRegistrada = infraccion.direccionRegistrada,
-                FechaHoraActualizacion = infraccion.fechaHoraActualizacion,
-                FechaHoraRegistro = infraccion.fechaHoraRegistro,
-                MontoAPagar = infraccion.montoAPagar,
-                TipoInfraccion = tiposInfraccion.FirstOrDefault(x => x.id == infraccion.tipoInfraccion).descripcion,
-                //TipoInfraccion = await GetTipoInfraccion(infraccion.tipoInfraccion),
-                existeAcarreo = infraccion.existeAcarreo
-                //Deposito = infraccion.existeAcarreo ? await GetDepositoAcarreo(infraccion.patente, infraccion.id) : null
-            }));
+                var tipoInfraccion = tiposInfraccion.FirstOrDefault(x => x.id == infraccion.tipoInfraccion);
+                response.Add(new Infraccion()
+                {
+                    Id = infraccion.id,
+                    Patente = infraccion.patente,
+                    DireccionRegistrada = infraccion.direccionRegistrada,
+                    FechaHoraActualizacion = infraccion.fechaHoraActualizacion,
+                    FechaHoraRegistro = infraccion.fechaHoraRegistro,
+                    MontoAPagar = infraccion.montoAPagar,
+                    TipoInfraccion = tipoInfraccion.descripcion,
+                    IdTipoInfraccion = tipoInfraccion.id,                    
+                    existeAcarreo = infraccion.existeAcarreo
+                });
+            }
 
-            return response.ToList();
+            //var response2 = infracciones.infracciones.Select(infraccion => new Infraccion()
+            //{
+            //    Id = infraccion.id,
+            //    Patente = infraccion.patente,
+            //    DireccionRegistrada = infraccion.direccionRegistrada,
+            //    FechaHoraActualizacion = infraccion.fechaHoraActualizacion,
+            //    FechaHoraRegistro = infraccion.fechaHoraRegistro,
+            //    MontoAPagar = infraccion.montoAPagar,
+            //    TipoInfraccion = tiposInfraccion.FirstOrDefault(x => x.id == infraccion.tipoInfraccion).descripcion,
+            //    //TipoInfraccion = await GetTipoInfraccion(infraccion.tipoInfraccion),
+            //    existeAcarreo = infraccion.existeAcarreo
+            //    //Deposito = infraccion.existeAcarreo ? await GetDepositoAcarreo(infraccion.patente, infraccion.id) : null
+            //});
+
+            bool FiltroIdTipoInfraccion(Infraccion x) => infraccionFilter.IdTipoInfraccion != -1 ? x.IdTipoInfraccion == infraccionFilter.IdTipoInfraccion : true;
+
+            bool FiltroDireccion(Infraccion x) => !string.IsNullOrWhiteSpace(infraccionFilter.Direccion) ? x.DireccionRegistrada.ToLower().Contains(infraccionFilter.Direccion.ToLower()) : true;
+
+            bool FiltroDateRegistro(Infraccion x) => infraccionFilter.DateRegistroFrom != null && infraccionFilter.DateRegistroTo != null ? DateTime.Parse(x.FechaHoraRegistro) > infraccionFilter.DateRegistroFrom && DateTime.Parse(x.FechaHoraRegistro) < infraccionFilter.DateRegistroTo : true;
+
+            return response.Where(x => FiltroIdTipoInfraccion(x) && FiltroDireccion(x) && FiltroDateRegistro(x)).ToList();
         }
+        
 
         public async Task<Deposito> GetDepositoAcarreo(string patente, int idInfraccion)
         {
@@ -92,7 +116,7 @@ namespace EstacionamientoMedido.Services
             return infraccion.tipo.descripcion;
         }
 
-        private async Task<List<TipoDto>> GetTiposInfraccionList()
+        public async Task<List<TipoDto>> GetTiposInfraccionList()
         {
             TiposInfraccionDto tiposInfraccion = null;
             HttpResponseMessage response = await _HttpClient.GetAsync($"{_BaseUrl}/tiposInfraccion");

@@ -1,4 +1,6 @@
 ﻿@inject NavigationManager navigationManager
+@inject ILoginService loginService
+@using Pages.Auth
 
 <nav class="navbar navbar-expand-md fixed-top navbar-dark bg-dark mb-4">
     <div class="container-fluid">
@@ -9,23 +11,34 @@
         <div class="collapse navbar-collapse" id="navbarCollapse">
             <ul class="navbar-nav me-auto mb-2 mb-md-0">
                 <li class="nav-item">
-                    <NavLink class="nav-link" href="index" Match="NavLinkMatch.All">
-                        Inicio
-                    </NavLink>
-                </li>
-                <li class="nav-item">
-                    <NavLink class="nav-link" href="mapa">
-                        Mapas
-                    </NavLink>
-                </li>
-                <li class="nav-item">
                     <NavLink class="nav-link" href="infracciones">
                         Infracciones
                     </NavLink>
                 </li>
+                <li class="nav-item">
+                    @if (isUserAuthenticated)
+                    {
+                        <NavLink class="nav-link" href="mapa">
+                            Mapas
+                        </NavLink>
+                    }
+                    else
+                    {
+                        <NavLink class="nav-link disabled" href="mapa">
+                            Mapas
+                        </NavLink>
+                    }
+                </li>
             </ul>
-            <div class="d-flex">              
-                <button class="btn btn-outline-danger mr-2" type="submit" @onclick="logout">Desconectarse</button>
+            <div class="d-flex">
+                @if (isUserAuthenticated)
+                {
+                    <button class="btn btn-outline-danger mr-2" type="submit" @onclick="logout">Desconectarse</button>
+                }
+                else
+                {
+                    <button class="btn btn-outline-success mr-2" type="submit" @onclick="Login">Iniciar Sesion</button>
+                }
             </div>
         </div>
     </div>
@@ -34,7 +47,9 @@
 
 
 @code {
+    [CascadingParameter] private Task<AuthenticationState> authenticationStateTask { get; set; }
     private bool collapseNavMenu = false;
+    private bool isUserAuthenticated;
 
     private string NavMenuCssClass => collapseNavMenu ? "open" : null;
 
@@ -43,9 +58,32 @@
         collapseNavMenu = !collapseNavMenu;
     }
 
-    public void logout()
+    public async override Task SetParametersAsync(ParameterView parameters)
     {
-        sessionManager.Logout();
-        navigationManager.NavigateTo("/login", true);
+        await base.SetParametersAsync(parameters);
+        var AuthState = await authenticationStateTask;
+
+        isUserAuthenticated = AuthState.User.Identity.IsAuthenticated;
     }
+
+    public async Task logout()
+    {
+        await loginService.Logout();
+    }
+
+    public async Task Login()
+    {
+        var options = new DigipModalOptions()
+        {
+            HideFooter = true,
+            HideHeader = true,
+            ModalBodyPadding = 0,
+            Size = ModalSize.Medium,
+            CardDesign = false,
+        };
+        var messageForm = ModalDigip.Show<LoginComponent>("", options);
+        var result = await messageForm.Result;
+        StateHasChanged();
+    }
+
 }

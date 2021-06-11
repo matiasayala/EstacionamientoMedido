@@ -1,0 +1,188 @@
+﻿@page "/infracciones"
+
+@layout AllowedLayout
+@inject InfraccionesService _InfraccionesService
+@attribute [AllowAnonymous]
+
+    <div class="container-lg">
+        <div class="row justify-content-center">
+            <div class="col-12 col-md-8 text-center">
+                <h1 class="display-3 mb-4">Buscador de Infracciones</h1>
+                <p class="lead mb-5">La informacion de las infracciones se actualiza de forma periódica.</p>
+            </div>
+        </div>
+        <div class="mb-4">
+            <EditForm @ref="InfraccionEditForm" Model="@InfraccionFilter" OnSubmit="@Search">
+                <div class="row">
+                    <div class="col-12">
+                        <label for="exampleInputEmail6">Direccion</label>
+                        <InputTextArea class="form-control" placeholder="Datos de la direccion de la infraccion..." @bind-Value="InfraccionFilter.Direccion" />
+                        <small id="emailHelp" class="form-text text-gray">label small</small>
+                    </div>
+                </div>
+                <div class="row mt-3">
+                    <div class="col-auto">
+                        <label for="exampleInputDate3">Patente</label>
+                        <InputTextEventfulComponent class="form-control" placeholder="ABC123" BindEvent="oninput" ValueChanged="@((string value) => InfraccionFilter.Patente = value.ToUpper())" Value="@InfraccionFilter.Patente" ValueExpression="@(() => InfraccionFilter.Patente)" />
+                    </div>
+                    <div class="col-auto">
+                        <label for="exampleInputDate3">Tipo</label>
+                        <InputSelect class="form-select mb-0" @bind-Value="InfraccionFilter.IdTipoInfraccion">
+                            <option selected value="-1">Seleccione...</option>
+                            @foreach (var item in InfraccionTipoList)
+                            {
+                                <option value="@item.id">@item.descripcion</option>
+                            }
+                        </InputSelect>
+                    </div>
+                    <div class="col-auto">
+                        <label for="exampleInputDate2">Desde</label>
+                        <div class="form-group">
+                            <div class="input-group input-group-border">
+                                <span class="input-group-text" id="basic-addonDate2">
+                                    <span class="fas far fa-calendar-alt">
+                                    </span>
+                                </span>
+                                <input class="form-control datepicker-input" data-datepicker type="date" @bind-value="InfraccionFilter.DateRegistroFrom" />
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-auto">
+                        <div class="form-group">
+                            <label for="exampleInputDate3">Hasta</label>
+                            <div class="input-group input-group-border">
+                                <span class="input-group-text" id="basic-addonDate3">
+                                    <span class="fas far fa-calendar-alt"></span>
+                                </span>
+                                <input class="form-control datepicker-input" data-datepicker type="date" @bind-value="InfraccionFilter.DateRegistroTo" />
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col mt-4 pt-2">
+                        <ButtonComponent type="submit" OnClick="(() => InfraccionEditForm.OnSubmit.InvokeAsync())" class="btn btn-info" disabled="@{string.IsNullOrWhiteSpace(InfraccionFilter.Patente)}">Buscar</ButtonComponent>
+                    </div>
+                </div>
+            </EditForm>
+        </div>
+
+
+        <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center py-4">
+            <div class="d-block mb-4 mb-md-0">
+                @if (InfraccionesList == null)
+                {
+                    <h2 class="h4">Buscando infracciones...</h2>
+                }
+                else
+                {
+                    <h2 class="h4">Resultado: @totalInfracciones Infracciones.</h2>
+                }
+            </div>
+            <div class="btn-toolbar mb-2 mb-md-0">
+                <div class="btn-group">
+                    <ButtonComponent type="button" OnClick="(() => ExportarCSV())" class="btn btn-sm btn-outline-primary">Exportar a CSV</ButtonComponent>
+                </div>
+            </div>
+        </div>
+
+        <div class="table-responsive">
+
+            <table class="table align-items-center table-flush table-striped table-hover">
+                <thead class="thead-light">
+                    <tr>
+                        <th>Tipo</th>
+                        <th>Direccion</th>
+                        <th>Monto</th>
+                        <th>Hora Registro</th>
+                        <th>Hora Actualizacion</th>
+                        <th>Acarreo</th>
+                        @*<th>#</th>*@
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (InfraccionesList != null && InfraccionesList.Any())
+                        @foreach (var infraccion in InfraccionesList)
+                        {
+                            <tr>
+                                <td>@infraccion.TipoInfraccion</td>
+                                <td>@infraccion.DireccionRegistrada</td>
+                                <td>@infraccion.MontoAPagar</td>
+                                <td>@infraccion.FechaHoraRegistro</td>
+                                <td>@infraccion.FechaHoraActualizacion</td>
+                                @if (infraccion.existeAcarreo)
+                                {
+                                    <td>
+                                        <i class="fa fa-check text-success text mr-2" />
+                                        <ButtonComponent OnClick="(() => Detalles(infraccion.Id, infraccion.Patente, infraccion.Id))" class="btn btn-xs btn-outline-dark">Detalle</ButtonComponent>
+                                    </td>
+                                }
+                                else
+                                {
+                                    <td><i class="fa fa-times text-danger text text-center" /></td>
+                                }
+                            </tr>
+                        }
+                </tbody>
+            </table>
+            @if (InfraccionesList == null)
+            {
+                <LoadingComponent></LoadingComponent>
+            }
+            else if (!InfraccionesList.Any())
+            {
+                <NoRecordsFoundComponent></NoRecordsFoundComponent>
+            }
+        </div>
+    </div>
+    @code {
+        private EditForm InfraccionEditForm;
+
+        private List<Infraccion> InfraccionesList = new List<Infraccion>();
+        private int totalInfracciones;
+
+        private List<Vehiculo> vehiculosList = new List<Vehiculo>();
+        private InfraccionFilter InfraccionFilter = new InfraccionFilter();
+        private List<TipoDto> InfraccionTipoList = new List<TipoDto>();
+
+        protected override async Task OnInitializedAsync()
+        {
+            await LoadInfraccionTipos();
+        }
+
+        private async Task Search()
+        {
+            InfraccionesList = null;
+            StateHasChanged();
+            InfraccionesList = await _InfraccionesService.GetInfracciones(InfraccionFilter);
+            totalInfracciones = InfraccionesList.Count;
+        }
+
+        private async Task ExportarCSV()
+        {
+            await Task.Delay(4000);
+        }
+
+        private async Task Detalles(int infraccionId, string infraccionPatente, int idInfraccion)
+        {
+            var parameters = new DigipModalParameters();
+            parameters.Add(nameof(AcarreoDetails.infraccionId), infraccionId);
+            parameters.Add(nameof(AcarreoDetails.infraccionPatente), infraccionPatente);
+            var options = new DigipModalOptions()
+            {
+                ModalBodyPadding = 3,
+                HideFooter = true,
+                CardDesign = true,
+                Size = ModalSize.Medium
+            };
+            var messageForm = ModalDigip.Show<AcarreoDetails>($"Detalles Acarreo - Infraccion {idInfraccion}", parameters, options);
+            var result = await messageForm.Result;
+            //if (result.IsOk)
+            //await Search();
+        }
+
+        private async Task LoadInfraccionTipos()
+        {
+            InfraccionTipoList = await _InfraccionesService.GetTiposInfraccionList();
+            InfraccionFilter.IdTipoInfraccion = -1;
+        }
+
+    }

@@ -12,9 +12,11 @@ namespace EstacionamientoMedido.Models
         public string FechaHoraRegistro { get; set; }
         public string FechaHoraActualizacion { get; set; }
         public string DireccionRegistrada { get; set; }
+        public int IdTipoInfraccion { get; set; }
         public string TipoInfraccion { get; set; }
         public string MontoAPagar { get; set; }
         public bool existeAcarreo { get; set; }
     }
+
 }
 

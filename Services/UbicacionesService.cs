@@ -8,7 +8,7 @@ namespace EstacionamientoMedido.Services
 {
     public class UbicacionesService
     {
-        public async Task<List<Ubicacion>> GetUbicaciones()
+        public List<Ubicacion> GetUbicaciones()
         {
             Ubicacion u1;
             var result = new List<Ubicacion>();

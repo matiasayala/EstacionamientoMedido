@@ -10,20 +10,25 @@
 @using EstacionamientoMedido.Shared
 
 
+@using Microsoft.AspNetCore.Components.Authorization;
+@using Microsoft.AspNetCore.Components.WebAssembly.Authentication;
+@using Microsoft.AspNetCore.Authorization
 @using Microsoft.AspNetCore.Components
 @using EstacionamientoMedido.Entities
+@using EstacionamientoMedido.Auth
 @using EstacionamientoMedido.Dtos
 @using EstacionamientoMedido.Models
 @using EstacionamientoMedido.Services
 @using EstacionamientoMedido.Helpers
 @using EstacionamientoMedido.Components
+@using EstacionamientoMedido.Components.DigipModalFiles;
 @using EstacionamientoMedido.Filters
 @using Newtonsoft.Json;
 @using Newtonsoft.Json.Linq;
 @using FisSst.BlazorMaps
+@inject IDigipModalService ModalDigip
 @inject IJSRuntime JsRuntime
 @inject IMarkerFactory MarkerFactory
 @inject IPolygonFactory PolygonFactory
 @inject IIconFactory IconFactory
 @inject HttpClient httpClient
-@inject SessionManager sessionManager
