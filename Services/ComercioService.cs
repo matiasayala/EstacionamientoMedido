@@ -159,6 +159,56 @@ namespace EstacionamientoMedido.Services
                 Localidad = "Polvorines"
             };
 
+
+            var electronorteOulet = new Comercio()
+            {
+                Id = 13,
+                Latitud = -34.508352518851744,
+                Longitud = -58.70271156959191,
+                Nombre = "Electronorte Oulet",
+                HorarioAtencion = "9hs a 18hs",
+                Rubro = "Electronica",
+                Direccion = "B1613FVI Los Polvorines Buenos Aires AR, Rivadavia 1743, B1613 FVI",
+                Localidad = "Polvorines"
+            };
+
+            var ferreteriaRivadavia = new Comercio()
+            {
+                Id = 14,
+                Latitud = -34.50550691182189,
+                Longitud = -58.69883844349386,
+                Nombre = "Ferreteria Rivadavia",
+                HorarioAtencion = "11hs a 16hs",
+                Rubro = "Ferretería",
+                Direccion = "Los Polvorines Buenos Aires AR, Rivadavia 2085, B1613 FVP",
+                Localidad = "Polvorines"
+            };
+
+            var qvaart = new Comercio()
+            {
+                Id = 15,
+                Latitud = -34.50849131186382,
+                Longitud = -58.69352704364178,
+                Nombre = "Qvaart",
+                HorarioAtencion = "11hs a 16hs",
+                Rubro = "Tienda",
+                Direccion = "B1614FAH, Esteban de Luca 2641, B1614FAH Villa de Mayo, Provincia de Buenos Aires",
+                Localidad = "Polvorines"
+            };
+
+            var estiloTeens = new Comercio()
+            {
+                Id = 16,
+                Latitud = -34.508506180626334,
+                Longitud = -58.6997160256975,
+                Nombre = "Estilo Teens",
+                HorarioAtencion = "11hs a 16hs",
+                Rubro = "Peluqueria",
+                Direccion = "Los Eucaliptus 3067, B1613 Los Polvorines, Provincia de Buenos Aires",
+                Localidad = "Polvorines"
+            };
+
+
             var comercios = new List<Comercio>()
             {
                 kioscoLaMorocha,
@@ -172,7 +222,11 @@ namespace EstacionamientoMedido.Services
                 despensaMorena,
                 despensaDeMary,
                 celularesTecnocell,
-                autoserviceNelly
+                autoserviceNelly,
+                electronorteOulet,
+                ferreteriaRivadavia,
+                qvaart,
+                estiloTeens,
             };
 
 

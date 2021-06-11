@@ -16,6 +16,7 @@
                     <div class="card mb-0 shadow-sm">
                         <div class="card-body">
                             <button class="btn btn-info btn-block" @onclick="PosicionInicial">Ir a Posicion Actual</button>
+                            <button class="btn btn-info btn-block" @onclick="PosicionReserva">Ir a Posicion Reserva</button>
                             <button class="btn btn-info btn-block" @onclick="() => MostrarOcultar(ref mostrarUbicacionActual, marker: UbicacionActualMarker)">@(mostrarUbicacionActual ? "Ocultar" : "Mostrar") Posicion Actual</button>
                             <button class="btn btn-info btn-block" @onclick="() => MostrarOcultar(ref mostrarReservaActual, marker: ReservaActualMarker)">@(mostrarReservaActual ? "Ocultar" : "Mostrar") Reserva Actual</button>
                             <button class="btn btn-info btn-block" @onclick="() => MostrarOcultar(ref mostrarComercios, markerList: ComerciosMarkers)">@(mostrarComercios ? "Ocultar" : "Mostrar") Comercios</button>
@@ -166,21 +167,27 @@
     {
         var zona1 = new PolygonOptions()
         {
-            Weight = 2,
+            Weight = 3,
             Color = "#4d29ff",
             FillOpacity = 0.2,
         };
         var zona2 = new PolygonOptions()
         {
-            Weight = 2,
+            Weight = 4,
             Color = "#ffff29",
-            FillOpacity = 0.3
+            FillOpacity = 0.35
+        };
+        var zona3 = new PolygonOptions()
+        {
+            Weight = 2,
+            Color = "#29a2ff",
+            FillOpacity = 0.2,
         };
         int i = 0;
         foreach (var zona in ZonasList)
         {
             i = i + 1;
-            var poly = await PolygonFactory.Create(zona.Vertices.ToLeafletLatLng(), i % 2 == 0 ? zona1 : zona2);
+            var poly = await PolygonFactory.Create(zona.Vertices.ToLeafletLatLng(), i % 3 == 0 ? zona3 : i % 3 == 1 ? zona2 : zona1);
             //await poly.BindPopup($"Costo: 2hs={zona.Costo2hs} - 4hs={zona.Costo4hs}");
             await poly.OnClick(OnClickZona);
             await poly.AddTo(mapRef);
@@ -263,6 +270,10 @@
     private async Task PosicionInicial()
     {
         await mapRef.SetView(ubicacionActual);
+    }
+    private async Task PosicionReserva()
+    {
+        await mapRef.SetView(reservaActual);
     }
 
     private void InicializarMapa()

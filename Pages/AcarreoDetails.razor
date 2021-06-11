@@ -9,7 +9,7 @@
                 <medium class="text-muted">@deposito.Nombre</medium>
             </div>
         </div>
-        <div class="list-group-item d-flex justify-content-between lh-sm col-auto">
+        <div class="list-group-item d-flex justify-content-between lh-sm col-3">
             <div>
                 <h6 class="my-0">Horario</h6>
                 <medium class="text-muted">@deposito.Horarios</medium>
@@ -23,7 +23,7 @@
                 <medium class="text-muted">@deposito.Direccion</medium>
             </div>
         </div>
-        <div class="list-group-item d-flex justify-content-between lh-sm col-auto">
+        <div class="list-group-item d-flex justify-content-between lh-sm col-3">
             <div>
                 <h6 class="my-0">Telefono</h6>
                 <medium class="text-muted">@deposito.Telefono</medium>
@@ -31,8 +31,10 @@
         </div>
     </div>
 </div>
-<ButtonComponent type="submit" OnClick="Centrar" class="btn btn-info">Centrar</ButtonComponent>
-<div class="card">
+<ButtonComponent type="submit" OnClick="Centrar" class="btn btn-info m-2">Centrar</ButtonComponent>
+<ButtonComponent type="submit" OnClick="Centrar" class="btn btn-warning m-2">Llamar</ButtonComponent>
+<button type="submit" @onclick="IniciarNavegacion" class="btn btn-success m-2">Iniciar Navegacion</button>
+<div class="card p-1">
     <Map @ref="mapRef" MapOptions="@mapOptions"></Map>
 </div>
 
@@ -81,6 +83,12 @@
     private async Task Centrar()
     {
         await mapRef.SetView(new LatLng(deposito.Ubicacion.Latitud, deposito.Ubicacion.Longitud));
+    }
+
+
+    private async Task IniciarNavegacion()
+    {
+        await JsRuntime.InvokeAsync<object>("open", "https://www.google.com.ar/maps/place/"+$"{deposito.Ubicacion.Latitud},{deposito.Ubicacion.Longitud}", "_blank");
     }
 
     private async Task MostrarDeposito()
