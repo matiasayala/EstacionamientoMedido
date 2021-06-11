@@ -97,6 +97,7 @@
         await LoadUbicaciones();
         await JsRuntime.MensajeToast("Se obtuvo la ubicacion actual correctamente");
         MostrarOcultar(ref mostrarUbicacionActual, marker: UbicacionActualMarker);
+        MostrarOcultar(ref mostrarReservaActual, marker: ReservaActualMarker);
     }
 
     private void MostrarOcultar(ref bool estado, List<Marker> markerList = null, Marker marker = null)
